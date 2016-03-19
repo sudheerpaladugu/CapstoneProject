@@ -1,0 +1,395 @@
+---
+title: "Capstone Project - Text Mining - Exploratory Data Anasys to Predict Words"
+author: "Pala"
+date: "March 15, 2016"
+output: html_document
+---
+
+```{r cleaning_memory, echo=FALSE, results='hide'}
+rm(list=ls(all=TRUE));
+suppressMessages(suppressWarnings(library(knitr)))
+suppressMessages(suppressWarnings(library(markdown)))
+par(mfrow=c(1,1))
+set.seed(9)
+gc(reset=TRUE);
+```
+
+```{r setup, include=FALSE, results='markup', echo=FALSE}
+knitr::opts_chunk$set(echo = TRUE, results = 'markup')
+```
+
+## Synnopsis  
+
+Goal of this project is to build a model and create ShinyApp to predict next word(s) (1st, 2nd, and 3rd) based on user type-in text. In this process, we are using Corpus data structure provided by tm - text mining framework, in R. Blogs, news, and twitter data (one large file from each) will be loaded from source directory (preferably) to a data frome. Observe/print the number of lines, words, and characters avalilable in data frame to understand the distribution and relationship between the data. Preapre sample data (from each file) and create a Corpus object. Then proceed to clean the data using Corpus cleaning techniques (stopwords, swearwords, removeWhiteSpace, punctuations etc). Load RWeka - library to get n-gram tokens (1st, 2nd, and 3rd) from the data. Execute NGrameTokenizers on data to understand the frequency of words and pairs by ploting diagrams.
+
+## Data Processing  
+
+###Loading Data  
+
+Data files downloaded from [Capstone Dataset](https://eventing.coursera.org/api/redirectStrict/4dqemV7oXrbN4eaT409lbkLHRVEqQdJIlXN9LOu0njGFfFJG640vXUV0m9dG2awp5PKybaItbTs1fBJr5cMtmQ.-BqTjtNZWKFzjaXW5xicOg.O6-5Hpx15-egaVLOcMPg7gRzCH_P-9yBx5X4LQ_3vqdjB89zlpQvFaSJRvD11nSGKc-3_XaAkl4Uwe8Lac96aaDgHJRQEp0PpVTOy5SZdROiuqnEaqoA9onrIUIsXBnVXx6u5cyZh-9Euth8PGlw6_0Qp1ZI006UN27FBXyq_4GQmNHi987NVBVE2POEQKoNo_UU0tDfaq5RpEdigTdVFkDNIX-fUVoCQ08h2g64mvz384QZ0q3qMgD9siIx0wkG5ygvt0O0iDCl0s6Uz_6rnaL43L8erwAnMKISrpokwFYp8ed329hYoe4PF-WYzX5fmNkSGPcU1HEkOZmkURLgU5jVMHRS1CS6_lTFU2h1qaDPorIcski7GocF62D4lyX5vz7G05N9XotNzxxkV9rpHfeSUxITGCyTjSS0ovXyxBM) to filesystem. Setting up source folders for original data files, sample files, and swear words file to read from filesystem. Below code checks for riginal source folder, creates it if one does not exist, and unzip files after donwload.
+
+```{r echo=TRUE, results='markup'}
+#Loading tm library by supressing messages and warnings 
+suppressMessages(suppressWarnings(library(tm)))
+```
+
+```{r loading_librariestext_data, results='show' }
+#source directory for data         
+sourcedir <- "C:/Data/Development/datascience/coursera/R/data/DataScienceCapstone/final/en_US"
+sampledir <- "C:/Data/Development/datascience/coursera/R/data/DataScienceCapstone/sample/en_US"
+swearwordsdir <- "C:/Data/Development/datascience/coursera/R/data/DataScienceCapstone/swearwords"
+
+if(!file.exists("C:/Data/Development/datascience/coursera/R/data/DataScienceCapstone/final/en_US")){
+        webURL <- "https://d396qusza40orc.cloudfront.net/dsscapstone/dataset/Coursera-SwiftKey.zip"
+        download.file(webURL,"C:/Data/Development/datascience/coursera/R/data/DataScienceCapstone")
+        #unzip to target folder
+        unzip("C:/Data/Development/datascience/coursera/R/data/DataScienceCapstone/Coursera-SwiftKey.zip",
+              "C:/Data/Development/datascience/coursera/R/data/DataScienceCapstone");
+}
+```
+
+
+```{r common_functions, echo=FALSE}
+set.seed(9)
+suppressMessages(suppressWarnings(library(stringr)))
+#Common functions to get size, length, and number of characters in a file
+readTxtFile <- function(srcdir,x)
+{
+        con <- file(paste(srcdir,sep = "/",x),'rb',blocking = FALSE)
+        txtFile <- readLines(con, warn = FALSE)
+        close(con)
+        return(txtFile)
+}
+
+writeTxtFile <- function(srcdir,d,x)
+{
+        con <- file(paste(srcdir,sep = "/",x),blocking = FALSE,raw = FALSE,open = "wt", encoding = "UTF-8")
+        txtFile <- writeLines(d,con)
+        close(con)
+}
+
+printWordFrequency <- function(crps, nm){
+        dtmtrx <- DocumentTermMatrix(crps, control=list(wordLengths=c(4,20), bounds = list(global = c(1,3))))
+        frqncy <- colSums(as.matrix(dtmtrx))
+        #Word frequency data frome
+        wf = data.frame(term=names(frqncy), occurrences=frqncy)
+        #printing first 10 max occurred terms
+        return(head(wf[with(wf, order(-occurrences, term)), ], nm))
+}
+
+printGgPlot <- function(dtmarix) {
+        freq <- sort(rowSums(as.matrix(dtmarix)), decreasing=TRUE)
+        freq_frame <- data.frame(Word=names(freq), Frequency=freq)
+        #return(freq_frame)
+        freq_frame <- head(freq_frame, 10)
+        ggplot(freq_frame, aes(x=Word,y=Frequency)) + geom_bar(stat="Identity", fill=c("#999999")) +geom_text(aes(label=Frequency), vjust=-0.20) + theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 15)) + theme(axis.text.y = element_text(hjust = 1, size = 15))+ theme(axis.title.x = element_text(size = 20)) + theme(axis.title.y = element_text(size = 20))
+}
+
+printQuantile <- function(dfreq){
+        iquant <- quantile(dfreq,probs=c(0,25,50,75,80,90,95,100)/100)
+        print(iquant)
+}
+
+dictCoverage <- function (tdmtrx, prcnt)
+{
+        freq <- 0
+        prcntfreq <- prcnt * sum(tdmtrx[1])
+        for (i in 1:nrow(tdmtrx)) {
+                if (freq >= prcntfreq) {
+                        return (i)
+                }
+                freq <- freq + tdmtrx[i, 1]
+        }
+        return (nrow(tdmtrx))
+}
+#to get file statistics
+iconvText <- function(x){return(iconv(x, to='ASCII//TRANSLIT'))}
+docSize <- function(x){format(object.size(x),"MB")}
+docLength <- function(x){return(length(x))}
+docChars  <- function(x) {sum(nchar(x))}
+getTokeNizer <- function(crps,mi,mx){return (NGramTokenizer(docs,Weka_control(min=mi, max=mx)))}
+
+#regex functions
+replaceWithSpace <- content_transformer(function(x, pattern){return (gsub(pattern,' ', x))})
+removeChar <- content_transformer(function(x, pattern){return (gsub(pattern,'', x))})
+removeLinks <- content_transformer(function(x){return(gsub("http[^[:space:]]*", "", x))})
+#remove characters if occures more than two
+removeRepeatedChars <- content_transformer(function(x){return(gsub('([[:alpha:]])\\1{2,}', '\\1\\1', x))}) 
+#End common functions code
+```
+
+```{r reading_data , echo=TRUE}
+twittertext <- readTxtFile(sourcedir,"en_US.twitter.txt")
+blogtext  <- readTxtFile(sourcedir,"en_US.blogs.txt")
+newstext  <- readTxtFile(sourcedir,"en_US.news.txt")
+
+#Data frame to print file statistics
+docs_details <- data.frame("Source" = c("blogs","news","twitter"), 
+                           "FileSize"=sapply(list(blogtext,newstext,twittertext), docSize), 
+                           "Length"=sapply(list(blogtext,newstext,twittertext), docLength),
+                           "Caracters"=sapply(list(blogtext,newstext,twittertext), docChars))
+#summary
+docs_details
+```
+
+Preparing sample data files (20% of raw data) and storing them in filesystem to read for analysis 
+
+```{r sampling_data, echo=TRUE, results='markup'}
+#Sampling data:: Getting 20% of sample data
+writeTxtFile(sampledir,iconvText(sample(twittertext, docLength(twittertext) * 0.02)),"sample.twitter.txt")
+writeTxtFile(sampledir,iconvText(sample(blogtext, docLength(blogtext) * 0.02)),"sample.blogs.txt")
+writeTxtFile(sampledir,iconvText(sample(newstext, docLength(newstext) * 0.02)),"sample.news.txt")
+
+```
+##Exploratory Data Analysis  
+### Creating Courps object with sample data and perform below operations  
+. remove special characters   
+. replace some characters with space  
+. remove spaces  
+. remove punctuations  
+. remove repeated characters  
+. remove numbers  
+. strip white spaces  
+. remove stopwords  
+. converting lowercase  
+
+```{r corpus_docs, echo=TRUE}
+#Loading libraries
+suppressMessages(suppressWarnings(library(SnowballC)))
+suppressMessages(suppressWarnings(library(RWeka)))
+
+docs <- Corpus(DirSource(sampledir))
+#[1] "sample.blogs.txt"   "sample.news.txt"    "sample.twitter.txt"
+docs
+```
+
+Cleaning Coupus and printing top 10 words which has higher frequency  
+
+```{r clean_data, echo=TRUE, results='markup'}
+#cleaning corpus text
+docs <- tm_map(docs, replaceWithSpace,"-")
+docs <- tm_map(docs, removeChar,"`")
+docs <- tm_map(docs, removeChar,"`")
+docs <- tm_map(docs, removeChar,"´")
+docs <- tm_map(docs, removeChar,"!")
+docs <- tm_map(docs, replaceWithSpace,":")
+docs <- tm_map(docs, removePunctuation)
+docs <- tm_map(docs, removeRepeatedChars)
+docs <- tm_map(docs, content_transformer(tolower))
+docs <- tm_map(docs, removeNumbers)
+docs <- tm_map(docs, removeLinks)
+docs <- tm_map(docs, stripWhitespace)
+docs <- tm_map(docs, PlainTextDocument)
+#docs <- tm_map(docs, stemDocument)
+#printing top 10 words frequency
+printWordFrequency(docs, 10)
+#DTM for Corpus - words which has length >4 & < 20 from three files
+dtmr <- DocumentTermMatrix(docs, control=list(wordLengths=c(4,20), bounds = list(global = c(3,27))))
+crpsfreq <- colSums(as.matrix(dtmr))
+
+```  
+###Wordcloud   
+Printing Corpus wordcould to check words frequency before removing stopwords & profanity words   
+**Note:** *Please check 'Commonfunctions' listed below*    
+
+```{r word_cloud, echo=TRUE}
+suppressMessages(suppressWarnings(library(wordcloud)))
+set.seed(9)
+pal <- brewer.pal(9,"YlGnBu")
+pal <- pal[-(1:4)]
+#ordrfq <- order(crpsfreq, decreasing = TRUE)
+wordcloud(names(crpsfreq),crpsfreq, min.freq = 70, scale=c(2,0.5), max.words=200, random.order=FALSE,
+          rot.per=0.35, use.r.layout=FALSE, colors=pal)
+rm(dtmr)
+rm(crpsfreq)
+```
+
+Downloaded [profanity](http://www.freewebheaders.com/wordpress/wp-content/uploads/full-list-of-bad-words-banned-by-google-txt-file.zip) words (though I named as swear words) and placed int filesystem. Removing profanity words from Corpus   
+Removing english stop words from data to get more meaningful words frequency   
+Printing top words which has higher frequency  
+
+```{r freq_words, echo=TRUE} 
+#Loading profanity workds
+swearwords <- readTxtFile(swearwordsdir,"swearWords.txt")
+#Removing profanity words to get useful words count
+docs <- tm_map(docs, removeWords, stopwords('english'))
+#Profanity filtering - removing profanity and other words you do not want to predict
+docs <- tm_map(docs, removeWords, swearwords)
+#Checking word frequency which has length > 4 & < 20 in three files
+printWordFrequency(docs, 10)
+#findFreqTerms(docs, lowfreq = 200)
+
+```  
+###N-Gram Tokenization   
+Creating 1-Gram, 2-Gram, and 3-Gram tokenizers to create TermDocumentMatrix to proceed with Analysis  
+Removing Corpus object from memory after usage. This object will not be referred in further analysis  
+Executing 1-Gram, 2-Gram, and 3-Gram tokenizers on data   
+
+```{r ExploratoryDataAnalysis, echo=TRUE}
+options(mc.cores=1) 
+
+#Tokenizers
+unitokenizer <- function(x){NGramTokenizer(x,Weka_control(min=1, max=1))}
+biotokenizer <- function(x){NGramTokenizer(x,Weka_control(min=2, max=2))}
+tritokenizer <- function(x){NGramTokenizer(x,Weka_control(min=3, max=3))}
+
+#Tokenization
+UniMatrix <- TermDocumentMatrix(docs, control=list(tokenize=unitokenizer))
+BiMatrix <- TermDocumentMatrix(docs, control=list(tokenize=biotokenizer))
+TriMatrix <- TermDocumentMatrix(docs, control=list(tokenize=tritokenizer))
+
+#removing docs from memory
+rm(docs)
+```
+
+```{r cache=FALSE, results='hide'} 
+gc(reset = TRUE)
+```
+###Frequency Analysis  
+####Loading 'wordcould' and 'ggplot2' libaries for printing wordcould (for unitokenized data) and plots  
+
+```{r freqncy_analysis, echo=TRUE}
+suppressMessages(suppressWarnings(library(ggplot2)))
+
+unifreq <- rowSums(as.matrix(UniMatrix))
+unifreq <- unifreq[order(unifreq,decreasing = TRUE)]
+#Quantiles
+printQuantile(unifreq)
+```
+
+Printing unifrequency words  
+
+```{r uni_wordcloud, echo=TRUE}
+set.seed(9)
+pal <- brewer.pal(9,"YlGnBu")
+pal <- pal[-(1:4)]
+wordcloud(names(unifreq),unifreq,min.freq = 70, scale=c(2,0.5), max.words=200, random.order=FALSE,
+          rot.per=0.35, use.r.layout=FALSE, colors=pal)
+
+```
+
+###More Frequent UnigramTokens (1-gram), BigramTokens (2-gram), and TrigramTokens (3-gram) words  
+Ploting more frequent words graphs  
+
+```{r plots_r, echo=TRUE}
+printGgPlot(unifreq)
+```
+
+### BigramTokens plot  
+
+```{r bifrequency_plot,echo=TRUE}
+#Bi-frequency for unique workds
+bifreq <- rowSums(as.matrix(BiMatrix))
+bifreq <- bifreq[order(bifreq,decreasing = TRUE)]
+#Quantiles
+printQuantile(bifreq)
+printGgPlot(bifreq)
+```  
+
+### TrigramTokens plot  
+
+```{r tri_gram, echo=TRUE}
+trifreq <- rowSums(as.matrix(TriMatrix))
+trifreq <- trifreq[order(trifreq,decreasing = TRUE)]
+#Quantiles
+printQuantile(trifreq)
+printGgPlot(trifreq)
+
+```
+
+####How many unique words do you need in a frequency sorted dictionary to cover 50% of all word instances in the language? 90%?  
+. 50% Coverage  
+. 90% Coverage  
+. 95% Coverage    
+
+**Note:** *Please check 'Commonfunctions' listed below*  
+```{r prcnt_crvg, echo=TRUE}
+#50% coverage
+dictCoverage(as.data.frame(unifreq), 0.50)
+#90% coverage
+dictCoverage(as.data.frame(unifreq), 0.90)
+#95% coverage
+dictCoverage(as.data.frame(unifreq), 0.95)
+
+```
+Higher frequencies giving more words from the dictionary   
+
+##Conclusion  
+This analysis concludes that bigram and trigram models will not be sutable as we cannot predict much so far. We could increase the sample data size and develop probabilistic approach where quad-grams are unobserved. Increasing the sample data requires more computational power and impact the efficiency of the application.  
+
+##Next Steps  
+
+Following steps will be perfomed for final analysis, build a model, and prediction:  
+
+. Execte N-Gram modelling against full data files by optimizing the model to consume low memory   
+. Develop final model as a ShinyApp/data product  
+
+### Common functions  
+```{r echo=TRUE, eval=FALSE}
+#Common functions to get size, length, and number of characters in a file
+readTxtFile <- function(srcdir,x)
+{
+        con <- file(paste(srcdir,sep = "/",x),'rb',blocking = FALSE)
+        txtFile <- readLines(con, warn = FALSE)
+        close(con)
+        return(txtFile)
+}
+
+writeTxtFile <- function(srcdir,d,x)
+{
+        con <- file(paste(srcdir,sep = "/",x),blocking = FALSE,raw = FALSE,open = "wt", encoding = "UTF-8")
+        txtFile <- writeLines(d,con)
+        close(con)
+}
+
+printWordFrequency <- function(crps, nm){
+        dtmtrx <- DocumentTermMatrix(crps, control=list(wordLengths=c(4,20), bounds = list(global = c(1,3))))
+        frqncy <- colSums(as.matrix(dtmtrx))
+        #Word frequency data frome
+        wf = data.frame(term=names(frqncy), occurrences=frqncy)
+        #printing first 10 max occurred terms
+        return(head(wf[with(wf, order(-occurrences, term)), ], nm))
+}
+
+printGgPlot <- function(dtmarix) {
+        freq <- sort(rowSums(as.matrix(dtmarix)), decreasing=TRUE)
+        freq_frame <- data.frame(Word=names(freq), Frequency=freq)
+        #return(freq_frame)
+        freq_frame <- head(freq_frame, 25)
+        ggplot(freq_frame, aes(x=Word,y=Frequency)) + geom_bar(stat="Identity", fill=c("#999999")) +geom_text(aes(label=Frequency), vjust=-0.20) + theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 15)) + theme(axis.text.y = element_text(hjust = 1, size = 15))+ theme(axis.title.x = element_text(size = 18)) + theme(axis.title.y = element_text(size = 18))
+}
+
+printQuantile <- function(dfreq){
+        iquant <- quantile(dfreq,probs=c(0,25,50,75,80,90,95,100)/100)
+        print(iquant)
+}
+#Checking dictionary coverage % 
+dictCoverage <- function (tdmtrx, prcnt)
+{
+        freq <- 0
+        prcntfreq <- prcnt * sum(tdmtrx[1])
+        for (i in 1:nrow(tdmtrx)) {
+                if (freq >= prcntfreq) {
+                        return (i)
+                }
+                freq <- freq + tdmtrx[i, 1]
+        }
+        return (nrow(tdmtrx))
+}
+
+#to get file statistics
+iconvText <- function(x){return(iconv(x, to='ASCII//TRANSLIT'))}
+docSize <- function(x){format(object.size(x),"MB")}
+docLength <- function(x){return(length(x))}
+docChars  <- function(x) {sum(nchar(x))}
+getTokeNizer <- function(crps,mi,mx){return (NGramTokenizer(docs,Weka_control(min=mi, max=mx)))}
+
+#regex functions
+replaceWithSpace <- content_transformer(function(x, pattern){return (gsub(pattern,' ', x))})
+removeChar <- content_transformer(function(x, pattern){return (gsub(pattern,'', x))})
+removeLinks <- content_transformer(function(x){return(gsub("http[^[:space:]]*", "", x))})
+#remove characters if occures more than two
+removeRepeatedChars <- content_transformer(function(x){return(gsub('([[:alpha:]])\\1{2,}', '\\1\\1', x))})
+#End common functions code
+```
+
