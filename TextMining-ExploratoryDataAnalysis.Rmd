@@ -1,5 +1,5 @@
 ---
-title: "Capstone Project - Text Mining - Exploratory Data Anasys to Predict Words"
+title: "Capstone Project - Text Mining - Exploratory Data Analysis on Datasets to Predict next Words"
 author: "Pala"
 date: "March 15, 2016"
 output: html_document
@@ -181,16 +181,16 @@ docs <- tm_map(docs, removeLinks)
 docs <- tm_map(docs, stripWhitespace)
 docs <- tm_map(docs, PlainTextDocument)
 #docs <- tm_map(docs, stemDocument)
+
 #printing top 10 words frequency
 printWordFrequency(docs, 10)
 #DTM for Corpus - words which has length >4 & < 20 from three files
 dtmr <- DocumentTermMatrix(docs, control=list(wordLengths=c(4,20), bounds = list(global = c(3,27))))
 crpsfreq <- colSums(as.matrix(dtmr))
-
 ```  
 ###Wordcloud   
 Printing Corpus wordcould to check words frequency before removing stopwords & profanity words   
-**Note:** *Please check 'Commonfunctions' listed below*    
+**Note:** *Please check 'Common functions' listed below*    
 
 ```{r word_cloud, echo=TRUE}
 suppressMessages(suppressWarnings(library(wordcloud)))
@@ -302,7 +302,7 @@ printGgPlot(trifreq)
 . 90% Coverage  
 . 95% Coverage    
 
-**Note:** *Please check 'Commonfunctions' listed below*  
+**Note:** *Please check 'Common functions' listed below*  
 ```{r prcnt_crvg, echo=TRUE}
 #50% coverage
 dictCoverage(as.data.frame(unifreq), 0.50)
