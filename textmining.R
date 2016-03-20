@@ -1,5 +1,5 @@
 library(tm)
-
+#Test Data URL - http://hereticsconsulting.files.wordpress.com/2016/01/textmining.zip
 #Create Corpus
 docs <- Corpus(DirSource('C:/Data/Development/datascience/coursera/R/data/TextMining'))
 
