@@ -1,0 +1,67 @@
+---
+title: "Text Mining Useful Links"
+author: "pala"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+###RDataMining.com: R and Data Mining  
+[http://www.rdatamining.com/](http://www.rdatamining.com/)  
+
+###Text Mining the Complete Works of William Shakespeare  
+[http://www.r-bloggers.com/text-mining-the-complete-works-of-william-shakespeare/](http://www.r-bloggers.com/text-mining-the-complete-works-of-william-shakespeare/)  
+    
+###Text mining and word cloud fundamentals in R : 5 simple steps you should know  
+[http://www.sthda.com/english/wiki/text-mining-and-word-cloud-fundamentals-in-r-5-simple-steps-you-should-know](http://www.sthda.com/english/wiki/text-mining-and-word-cloud-fundamentals-in-r-5-simple-steps-you-should-know)  
+  
+###A gentle introduction to text mining using R  
+[https://eight2late.wordpress.com/2015/05/27/a-gentle-introduction-to-text-mining-using-r/](https://eight2late.wordpress.com/2015/05/27/a-gentle-introduction-to-text-mining-using-r/)  
+  
+###Text Mining in R Tutorial: Term Frequency & Word Clouds  
+[https://www.youtube.com/watch?v=lRTerj8fdY0](https://www.youtube.com/watch?v=lRTerj8fdY0)  
+  
+  
+###How to Build a Text Mining, Machine Learning Document Classification System in R!
+[https://www.youtube.com/watch?v=j1V2McKbkLo](https://www.youtube.com/watch?v=j1V2McKbkLo)  
+  
+###Text Mining
+[http://www.r-bloggers.com/text-mining/](http://www.r-bloggers.com/text-mining/)  
+  
+###Text Mining, Scraping and Sentiment Analysis with R  
+[https://www.udemy.com/r-social-media-mining-scraping-with-twitter/](https://www.udemy.com/r-social-media-mining-scraping-with-twitter/)  
+  
+###Text mining in R: how to find term frequency
+[https://deltadna.com/blog/text-mining-in-r-for-term-frequency/](https://deltadna.com/blog/text-mining-in-r-for-term-frequency/)  
+[https://deltadna.com/blog/data-manipulation-with-r/](https://deltadna.com/blog/data-manipulation-with-r/)  
+[https://deltadna.com/blog/text-mining-in-r-for-term-frequency/](https://deltadna.com/blog/text-mining-in-r-for-term-frequency/)  
+  
+###RDataMining.com: R and Data Mining (EXCELLENT FOR R PROGRAMMING)  
+[http://www.rdatamining.com/examples/text-mining](http://www.rdatamining.com/examples/text-mining)  
+  
+###How to Build a Text Mining, Machine Learning Document Classification System in R!  
+[https://www.youtube.com/watch?v=j1V2McKbkLo](https://www.youtube.com/watch?v=j1V2McKbkLo)  
+  
+###Predictive Analytics: Text Analytics & Text Mining  
+[https://www.youtube.com/watch?v=dla_Me1hxcU](https://www.youtube.com/watch?v=dla_Me1hxcU)  
+  
+###How to build a Text Mining Platform  
+[https://www.youtube.com/watch?v=Y8lIteCf4Vs](https://www.youtube.com/watch?v=Y8lIteCf4Vs)    
+  
+###Data Science - Part I - Building Predictive Analytics Capabilities  
+[https://www.youtube.com/watch?v=KDJDzeKM8DI](https://www.youtube.com/watch?v=KDJDzeKM8DI)  
+  
+###Text Mining  
+[http://documents.software.dell.com/Statistics/Textbook/Text-Mining#applications](http://documents.software.dell.com/Statistics/Textbook/Text-Mining#applications)  
+
+###60+ R resources to improve your data skills  
+[http://www.computerworld.com/article/2497464/business-intelligence/business-intelligence-60-r-resources-to-improve-your-data-skills.html](http://www.computerworld.com/article/2497464/business-intelligence/business-intelligence-60-r-resources-to-improve-your-data-skills.html)  
+
+
+
+
+
+
+
+
+
