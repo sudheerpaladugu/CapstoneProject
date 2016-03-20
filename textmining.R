@@ -21,7 +21,7 @@ docs <- tm_map(docs, removeWords, stopwords('english'))
 docs <- tm_map(docs, stripWhitespace)
 
 library("SnowballC")
-docs <- tm_map(docs, stemDocument)
+#docs <- tm_map(docs, stemDocument)
 
 docs <- tm_map(docs, content_transformer(gsub), pattern = 'organiz', replacement = 'organ')
 docs <- tm_map(docs, content_transformer(gsub), pattern = 'organis', replacement = 'organ')
@@ -88,10 +88,12 @@ p
 library(wordcloud)
 set.seed(42)
 
-wordcloud(names(freq2),freq2, min.freq = 70, colors=brewer.pal(5, "Dark2"), random.order = FALSE)
+wordcloud(names(freq2),freq2, min.freq = 40, colors=brewer.pal(5, "Dark2"), random.order = FALSE)
 
 pal <- brewer.pal(9,"YlGnBu")
 pal <- pal[-(1:4)]
 
-wordcloud(names(freq2),freq2,min.freq = 70, scale=c(5,0.1), max.words=100, random.order=FALSE,
+# wordcloud(names(freq2),freq2,min.freq = 40, scale=c(5,0.1), max.words=200, random.order=FALSE,
+#           rot.per=0.35, use.r.layout=FALSE, colors=pal)
+wordcloud(names(freq2),freq2, scale=c(5,0.1), random.order=FALSE,
           rot.per=0.35, use.r.layout=FALSE, colors=pal)
