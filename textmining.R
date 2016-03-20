@@ -95,30 +95,3 @@ pal <- pal[-(1:4)]
 
 wordcloud(names(freq2),freq2,min.freq = 70, scale=c(5,0.1), max.words=100, random.order=FALSE,
           rot.per=0.35, use.r.layout=FALSE, colors=pal)
-
-
-
-
-# Create a test data vector
-testin <- c(
-        "Arizona, Arizona, Arizona, Arizona, ",
-        "Arizona, Arizona, Arizona, California Carmel Beach, California LBC, California Napa, Arizona",
-        "Virginia, Virginia, Virginia"
-)
-
-# The names to remove if duplicated
-kickDuplicates <- c("Arizona", "Virginia")
-
-
-# create a list of vectors of place names
-broken <- strsplit(testin, ",\\s*")
-
-# paste each broken vector of place names back together
-# .......kicking out duplicated instances of the chosen names
-testout <- sapply(broken, FUN = function(x)  paste(x[!duplicated(x) | !x %in% kickDuplicates ], collapse = ", "))
-
-# see what we did
-testout
-
-removeRepeatedChars <- content_transformer(function(x){return(gsub('([[:alpha:]])\\1+', '\\1', x))})
-removeRepeatedChars(testin)
