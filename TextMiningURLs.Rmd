@@ -6,6 +6,9 @@ author: "pala"
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+###Text Mining Infrastructure in R  
+[https://www.jstatsoft.org/article/view/v025i05](https://www.jstatsoft.org/article/view/v025i05)  
+  
 ###RDataMining.com: R and Data Mining  
 [http://www.rdatamining.com/](http://www.rdatamining.com/)  
 
